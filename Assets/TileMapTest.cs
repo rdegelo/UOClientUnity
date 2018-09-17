@@ -21,11 +21,23 @@ public class TileMapTest : MonoBehaviour
             for (int x = 1350; x < 1450; x++)
             {
                 var uoTile = Ultima.Map.Trammel.Tiles.GetLandTile(x, y);
-                var tile = ScriptableObject.CreateInstance<Tile>();
-                tile.sprite = GetSprite(uoTile.ID);
-                tileMap.SetTile(new Vector3Int(x - 1350, y - 1630, uoTile.Z), tile);
+                addTile(y, x, uoTile.Z, GetSprite(uoTile.ID, true));
+
+                //var statics = Ultima.Map.Trammel.Tiles.GetStaticTiles(x, y);
+                //foreach (var st in statics)
+                //{
+                //    addTile(y, x, st.Z, GetSprite(st.ID, false));
+                //}
             }
         }
+    }
+
+    private void addTile(int y, int x, int z, Sprite sprite)
+    {
+        var tile = ScriptableObject.CreateInstance<Tile>();
+        tile.sprite = sprite;
+        tileMap.SetTile(new Vector3Int(x - 1350, y - 1630, z), tile);
+        tileMap.SetTransformMatrix(new Vector3Int(x - 1350, y - 1630, z), Matrix4x4.Translate(new Vector3(0, z / 2)));
     }
 
     // Update is called once per frame
@@ -34,14 +46,17 @@ public class TileMapTest : MonoBehaviour
         
     }
 
-    protected Bitmap GetBmp(int id)
+    protected Bitmap GetBmp(int id, bool isLand)
     {
-        return Ultima.Art.GetLand(id);
+        if (isLand)
+            return Ultima.Art.GetLand(id);
+        else
+            return Ultima.Art.GetStatic(id);
     }
 
-    protected Texture2D GetTexture(int id)
+    protected Texture2D GetTexture(int id, bool isLand)
     {
-        return GetTexture(GetBmp(id));
+        return GetTexture(GetBmp(id, isLand));
     }
 
     protected Texture2D GetTexture(Bitmap bmp)
@@ -77,9 +92,9 @@ public class TileMapTest : MonoBehaviour
         return texture;
     }
 
-    protected Sprite GetSprite(int id)
+    protected Sprite GetSprite(int id, bool isLand)
     {
-        return GetSprite(GetBmp(id));
+        return GetSprite(GetBmp(id, isLand));
     }
     
     protected Sprite GetSprite(Bitmap bmp)
