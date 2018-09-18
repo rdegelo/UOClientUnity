@@ -1,43 +1,93 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
 using System.IO;
+using System.Linq;
+using Ultima;
 using UnityEngine;
 using UnityEngine.Tilemaps;
 
 public class TileMapTest : MonoBehaviour
 {
-    Tilemap tileMap;
+    private enum TilemapsEnum
+    {
+        Land,
+        Wall,
+        Surface,
+        Bridge,
+        Roof,
+        Door,
+        StairBack,
+        Unknown
+    }
+
+    Dictionary<TilemapsEnum, Tilemap> TileMapsMappings;
 
     // Start is called before the first frame update
     void Start()
     {
         Ultima.Files.SetMulPath(@"F:\Jogos\UO\Ultima Online Latest");
-        tileMap = FindObjectOfType<Tilemap>();
+
+        TileMapsMappings = FindObjectsOfType<Tilemap>()
+            .ToDictionary(o => 
+            (TilemapsEnum)Enum.Parse(typeof(TilemapsEnum), o.GetComponent<TilemapRenderer>().name.Split(' ')[1]));
 
         for (int y = 1630; y < 1730; y++)
         {
             for (int x = 1350; x < 1450; x++)
             {
-                var uoTile = Ultima.Map.Trammel.Tiles.GetLandTile(x, y);
-                addTile(y, x, uoTile.Z, GetSprite(uoTile.ID, true));
+                var uoTile = Map.Trammel.Tiles.GetLandTile(x, y);
+                AddTile(TilemapsEnum.Land, y, x, uoTile.Z, GetSprite(uoTile.ID, true));
 
-                //var statics = Ultima.Map.Trammel.Tiles.GetStaticTiles(x, y);
-                //foreach (var st in statics)
-                //{
-                //    addTile(y, x, st.Z, GetSprite(st.ID, false));
-                //}
+                var statics = Map.Trammel.Tiles.GetStaticTiles(x, y);
+                foreach (var st in statics)
+                {
+                    var metadata = Ultima.TileData.ItemTable[st.ID];
+                    AddTile(GetTilemapsEnum(metadata.Flags), y, x, st.Z, GetSprite(st.ID, false));
+                }
             }
         }
     }
 
-    private void addTile(int y, int x, int z, Sprite sprite)
+    private TilemapsEnum GetTilemapsEnum(TileFlag tileFlags)
     {
-        var tile = ScriptableObject.CreateInstance<Tile>();
+        var checkTypeValues = Enum.GetValues(typeof(TileFlag));
+        foreach (TileFlag value in checkTypeValues)
+        {
+            if ((tileFlags & value) == value)
+            {
+                switch (value)
+                {
+                    case TileFlag.Wall:
+                        return TilemapsEnum.Wall;
+                    case TileFlag.Surface:
+                    case TileFlag.Wet:
+                        return TilemapsEnum.Surface;
+                    case TileFlag.Bridge:
+                        return TilemapsEnum.Bridge;
+                    case TileFlag.Roof:
+                        return TilemapsEnum.Roof;
+                    case TileFlag.Door:
+                        return TilemapsEnum.Door;
+                    case TileFlag.StairBack:
+                        return TilemapsEnum.StairBack;
+                }
+            }
+        }
+
+        return TilemapsEnum.Unknown;
+    }
+
+    private void AddTile(TilemapsEnum tileMapType, int y, int x, int z, Sprite sprite)
+    {
+        var tileMap = TileMapsMappings[tileMapType];
+
+        var tile = ScriptableObject.CreateInstance<UnityEngine.Tilemaps.Tile>();
         tile.sprite = sprite;
         tileMap.SetTile(new Vector3Int(x - 1350, y - 1630, z), tile);
-        tileMap.SetTransformMatrix(new Vector3Int(x - 1350, y - 1630, z), Matrix4x4.Translate(new Vector3(0, z / 2)));
+        tileMap.SetTransformMatrix(new Vector3Int(x - 1350, y - 1630, z), Matrix4x4.Translate(new Vector3(0, z / 4)));
     }
 
     // Update is called once per frame

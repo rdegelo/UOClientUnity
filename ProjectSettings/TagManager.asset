@@ -41,3 +41,27 @@ TagManager:
   - name: Default
     uniqueID: 0
     locked: 0
+  - name: Land
+    uniqueID: 761804459
+    locked: 0
+  - name: Surface
+    uniqueID: 2321757453
+    locked: 0
+  - name: Wall
+    uniqueID: 1246174043
+    locked: 0
+  - name: Door
+    uniqueID: 680298473
+    locked: 0
+  - name: StairBack
+    uniqueID: 3083295609
+    locked: 0
+  - name: Bridge
+    uniqueID: 2154072521
+    locked: 0
+  - name: Roof
+    uniqueID: 4012108537
+    locked: 0
+  - name: Unknown
+    uniqueID: 785265667
+    locked: 0
